@@ -5,8 +5,6 @@
  *
  * Change Logs:
  * Date           Author       Notes
- * 2020-04-29     supperthomas first version
- *
  */
 
 #include <rtthread.h>
@@ -19,6 +17,8 @@ static esp_foc_rotor_sensor_t *sensor;
 static esp_foc_axis_t axis;
 static float now = 0;
 
+static esp_foc_d_voltage vd; 
+static esp_foc_q_voltage vq;
 
 int main(void)
 {
@@ -28,12 +28,18 @@ int main(void)
 	sensor = rotor_sensor_rtthread_new();
 
 	esp_foc_initialize_axis(&axis, inverter, sensor, 8);
-    while (1)
-    {
+
+	vd.raw = 0.0f;
+	vq.raw = 4.0f;
+
+	esp_foc_set_target_voltage(&axis, &vq, &vd);
+
+	while (1)
+	{
 		float now = ((float)rt_tick_get_millisecond()) * 0.001f;
 		esp_foc_run(&axis, now);
 		rt_thread_mdelay(1);
-    }
-    return RT_EOK;
+	}
+	return RT_EOK;
 }
 
