@@ -12,6 +12,7 @@ typedef struct {
 typedef struct {
     float current_count;
     float counts_per_revolution;
+	float increment;
     esp_foc_rotor_sensor_t interface;
 }esp_foc_rtthread_sensor_t;
 
@@ -89,27 +90,43 @@ static float read_counts(esp_foc_rotor_sensor_t *self)
     esp_foc_rtthread_sensor_t *obj =
         rt_container_of(self,esp_foc_rtthread_sensor_t, interface);
 	float simulated = obj->current_count;
-	obj->current_count += 10.0f;
+	obj->current_count += obj->increment;
+	if(obj->current_count > obj->counts_per_revolution) {
+		obj->current_count = obj->current_count - obj->counts_per_revolution;
+	} else if (obj->current_count < 0.0f) {
+		obj->current_count = obj->counts_per_revolution + obj->current_count;		
+	}
     return obj->current_count;
+}
+
+void set_simulation_count (esp_foc_rotor_sensor_t *self, float increment)
+{
+    esp_foc_rtthread_sensor_t *obj =
+        rt_container_of(self,esp_foc_rtthread_sensor_t, interface);
+	obj->increment = increment * obj->counts_per_revolution;
 }
 
 static void  delay_ms(esp_foc_rotor_sensor_t *self, int ms)
 {
     (void)self;
-    rt_thread_mdelay(ms);    
+    rt_thread_mdelay(ms);
 }
 
 void devices_rtthread_init() 
 {
 	inverter.pwm0 = (struct rt_device_pwm *)rt_device_find("pwm0");
 	inverter.pwm1 = (struct rt_device_pwm *)rt_device_find("pwm1");
+	inverter.dc_link_voltage = 12.0f;
 	inverter.interface.get_dc_link_voltage = get_dc_link_voltage;
 	inverter.interface.set_voltages = set_voltages;
 
 	sensor.interface.set_to_zero = set_to_zero;
 	sensor.interface.get_counts_per_revolution = get_counts_per_revolution;
 	sensor.interface.read_counts = read_counts;
+	sensor.interface.delay_ms = delay_ms;
+	sensor.interface.set_simulation_count = set_simulation_count;
 	sensor.counts_per_revolution = 4096.0f;
+	sensor.increment = sensor.counts_per_revolution * 0.01f;
 }
 
 esp_foc_inverter_t *inverter_rtthread_new(void)

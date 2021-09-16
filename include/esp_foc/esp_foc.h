@@ -9,7 +9,8 @@
 #include "current_sensor_interface.h"
 #include "rotor_sensor_interface.h"
 
-#define CONFIG_ESP_FOC_ALIGN_STEP_DELAY_MS 5
+#define CONFIG_ESP_FOC_ALIGN_STEP_DELAY_MS 		5
+#define CONFIG_ESP_FOC_SIMULATE_ROTOR_SENSOR 	1
 #define IRAM_ATTR 
 
 typedef enum {

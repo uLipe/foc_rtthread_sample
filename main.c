@@ -28,7 +28,8 @@ int main(void)
 	sensor = rotor_sensor_rtthread_new();
 
 	esp_foc_initialize_axis(&axis, inverter, sensor, 8);
-
+	esp_foc_align_axis(&axis);
+	
 	vd.raw = 0.0f;
 	vq.raw = 4.0f;
 
